@@ -11,11 +11,11 @@ data class PokerGame(
 )
 
 
-fun runPracticeRound(){
+fun runPracticeRound(numberOfParticipants: Int): Boolean {
     var isGameEnd = false
     while(!isGameEnd){
         val deck = createDeck().apply { shuffle() }
-        val (userContext, preflopActions, isGameEnd) = generatePreflopScenario(deck)
+        val (userContext, preflopActions, isGameEnd) = generatePreflopScenario(deck, numberOfParticipants)
     }
     val game = PokerGame(deck, userContext, preflopActions = preflopActions.toMutableList())
 
@@ -47,18 +47,28 @@ fun dealToBoard(game: PokerGame, count: Int) {
     }
 }
 
-fun generatePreflopScenario(deck: MutableList<String>): PlayerContext, List<Map<String, String>>, Boolean{
+fun generatePreflopScenario(deck: MutableList<String>, numberOfParticipants: Int): PlayerContext, List<Map<String, String>>, Boolean{
     while(true){
         val userHand = listOf(deck.removeAt(0), deck.removeAt(0))
-        val userPosition = listOf("UTG", "HJ", "CO", "BTN", "SB", "BB").random()
-        val (preflopActions, isGameEnd) = generatePreflopActions(userHand, userPosition)
+        val userPosition = getRandomPosition(numberOfParticipants)
+        val (preflopActions, isGameEnd) = generatePreflopActions(userHand, userPosition, numberOfParticipants)
 
         return PlayerContext(userHand, userPosition), preflopActions, isGameEnd
     }
 }
-fun generatePreflopAction(userHand: List<String>, userPosition: String): List<MutableMap<String, String>>, isGameEnd: Boolean{
+
+fun getRandomPosition(numberOfParticipants: Int): String {
+    val positions = getAllPositions(numberOfParticipants)
+    return positions.random()
+}
+
+fun getAllPositions(numberOfParticipants: Int): List<String> {
+    return allPositions = listOf("SB", "BB", "BTN", "UTG", "CO", "HJ", "LJ", "EP", "MP")[0 until numberOfParticipants]
+}
+
+fun generatePreflopAction(userHand: List<String>, userPosition: String, numberOfParticipants: Int): List<MutableMap<String, String>>, isGameEnd: Boolean{
     opponentHand = generateRandomCards(2)
-    opponentPosition = listOf("UTG", "HJ", "CO", "BTN", "SB", "BB").random()
+    opponentPosition = getRandomPosition(numberOfParticipants) - userPosition
     sortOrder = getSortOrder("preflop")
     remainingParticipants = 
     // -----------------bookmark-----------------
@@ -86,20 +96,20 @@ fun generateRandomCard(): String{
     return rank + suit
 }
 
-
 fun getsortorder(stage: String): List<String>{
     // Implement logic to get the sort order based on the stage of the game
     if(stage == "preflop"){
-        return listOf("UTG", "HJ", "CO", "BTN", "SB", "BB")
+        return listOf("UTG", "EP", "MP", "LJ", "HJ", "CO", "BTN", "SB", "BB")
     } else {
-        return listOf("SB", "BB", "UTG", "HJ", "CO", "BTN")
+        return listOf("SB", "BB", "UTG", "EP", "MP", "LJ", "HJ", "CO", "BTN")
     }
 }
 
 fun main(){
+    numOfParticipants = 6 // add user input for number of participants, 2 to 9 validate!!!
     isContinuePractice = true
     while(isContinuePractice){
-        isContinuePractice = runPracticeRound()
+        isContinuePractice = runPracticeRound(numberOfParticipants)
     }
 
     println("Thank you for practicing! See you next time.")
