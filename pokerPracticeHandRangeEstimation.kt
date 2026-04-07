@@ -51,7 +51,7 @@ fun generatePreflopScenario(deck: MutableList<String>, numberOfParticipants: Int
     while(true){
         val userHand = listOf(deck.removeAt(0), deck.removeAt(0))
         val userPosition = getRandomPosition(numberOfParticipants)
-        val (preflopActions, isGameEnd) = generatePreflopActions(userHand, userPosition, numberOfParticipants)
+        val (preflopActions, isGameEnd) = generatePreflopActions(PlayerContext(userHand, userPosition), numberOfParticipants)
 
         return PlayerContext(userHand, userPosition), preflopActions, isGameEnd
     }
@@ -63,14 +63,28 @@ fun getRandomPosition(numberOfParticipants: Int): String {
 }
 
 fun getAllPositions(numberOfParticipants: Int): List<String> {
-    return allPositions = listOf("SB", "BB", "BTN", "UTG", "CO", "HJ", "LJ", "EP", "MP")[0 until numberOfParticipants]
+    return allPositions = listOf("BB", "BTN", "SB", "UTG", "CO", "HJ", "LJ", "EP", "MP")[0 until numberOfParticipants]
 }
 
-fun generatePreflopAction(userHand: List<String>, userPosition: String, numberOfParticipants: Int): List<MutableMap<String, String>>, isGameEnd: Boolean{
-    opponentHand = generateRandomCards(2)
-    opponentPosition = getRandomPosition(numberOfParticipants) - userPosition
+fun generatePreflopAction(userContext: PlayerContext, numberOfParticipants: Int): List<MutableMap<String, String>>, isGameEnd: Boolean{
+    opponentContext = PlayerContext(generateRandomCards(2), getRandomPosition(numberOfParticipants) - userContext.position)
     sortOrder = getSortOrder("preflop")
-    remainingParticipants = 
+    remainingPlayers = listOf(userContext, opponentContext)
+    actionQueue = (userContext, opponentContext) sorted by sortOrder
+    actionHistory = mutableListOf<String>()
+
+    while (actionQueue.listiterator().hasNext()) {
+        val currentPlayer = actionQueue.next()
+        val playerAction = decideAction(currentPlayer)
+        actionHistory.add("${currentPlayer.position} ${playerAction.action}")
+        // ------------------bookmark-----------------
+        if playerAction.action == "fold" {
+            remainingPlayers.remove(currentPlayer)
+            return actionHistory, true
+        } else if playerAction.action == "call" {
+            // Implement logic to handle raise action, e.g., update pot, update remaining players, etc.
+        }
+    }
     // -----------------bookmark-----------------
     return listOf(mutableMapOf()), false
 }
