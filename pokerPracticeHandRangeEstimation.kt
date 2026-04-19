@@ -15,9 +15,9 @@ fun runPracticeRound(numberOfParticipants: Int): Boolean {
     var isGameEnd = false
     while(!isGameEnd){
         val deck = createDeck().apply { shuffle() }
-        val (userContext, preflopActions, isGameEnd) = generatePreflopScenario(deck, numberOfParticipants)
+        val (heroContext, opponentContext, preflopActions, isGameEnd) = generatePreflopScenario(deck, numberOfParticipants)
     }
-    val game = PokerGame(deck, userContext, preflopActions = preflopActions.toMutableList())
+    val game = PokerGame(deck, heroContext, opponentContext, preflopActions = preflopActions.toMutableList())
 
     dealToBoard(game, 3)
     showBoard(game, "flop")
@@ -48,27 +48,20 @@ fun dealToBoard(game: PokerGame, count: Int) {
 }
 
 fun generatePreflopScenario(deck: MutableList<String>, numberOfParticipants: Int): PlayerContext, List<Map<String, String>>, Boolean{
-    while(true){
-        val userHand = listOf(deck.removeAt(0), deck.removeAt(0))
-        val userPosition = getRandomPosition(numberOfParticipants)
-        val (preflopActions, isGameEnd) = generatePreflopActions(PlayerContext(userHand, userPosition), numberOfParticipants)
+    heroContext = PlayerContext(listOf(deck.removeAt(0), deck.removeAt(0)), getRondomPosition(numberOfParticipants))
+    opponentContext = PlayerContext(listOf(deck.removeAt(0), deck.removeAt(0)), getRandomPosition(numberOfParticipants) - heroContext.position)
+    val (preflopActions, isGameEnd) = generatePreflopActions(heroContext, opponentContext, numberOfParticipants)
 
-        return PlayerContext(userHand, userPosition), preflopActions, isGameEnd
-    }
+    return heroContext, opponentContext, preflopActions, isGameEnd
 }
 
 fun getRandomPosition(numberOfParticipants: Int): String {
-    val positions = getAllPositions(numberOfParticipants)
+    val positions = listOf("BB", "BTN", "SB", "UTG", "CO", "HJ", "LJ", "EP", "MP")[0 until numberOfParticipants]
     return positions.random()
 }
 
-fun getAllPositions(numberOfParticipants: Int): List<String> {
-    return allPositions = listOf("BB", "BTN", "SB", "UTG", "CO", "HJ", "LJ", "EP", "MP")[0 until numberOfParticipants]
-}
-
-fun generatePreflopAction(userContext: PlayerContext, numberOfParticipants: Int): List<MutableMap<String, String>>, isGameEnd: Boolean{
-    opponentContext = PlayerContext(generateRandomCards(2), getRandomPosition(numberOfParticipants) - userContext.position)
-    sortOrder = getSortOrder("preflop")
+fun generatePreflopAction(userContext: PlayerContext, opponentContext: PlayerContext, numberOfParticipants: Int): List<MutableMap<String, String>>, isGameEnd: Boolean{
+    sortOrder = getSortOrder("UTG")
     remainingPlayers = listOf(userContext, opponentContext)
     actionQueue = (userContext, opponentContext) sorted by sortOrder
     actionHistory = mutableListOf<String>()
@@ -110,13 +103,11 @@ fun generateRandomCard(): String{
     return rank + suit
 }
 
-fun getsortorder(stage: String): List<String>{
+fun getsortorder(firstPosition: String): List<String>{
     // Implement logic to get the sort order based on the stage of the game
-    if(stage == "preflop"){
-        return listOf("UTG", "EP", "MP", "LJ", "HJ", "CO", "BTN", "SB", "BB")
-    } else {
-        return listOf("SB", "BB", "UTG", "EP", "MP", "LJ", "HJ", "CO", "BTN")
-    }
+    defaultOrder = listOf("SB", "BB", "UTG", "EP", "MP", "LJ", "HJ", "CO", "BTN")
+    val startIndex = defaultOrder.indexOf(firstPosition)
+    return defaultOrder.drop(startIndex) + defaultOrder.take(startIndex)
 }
 
 fun main(){
